@@ -58,3 +58,41 @@
 
 ---
 </br>
+
+
+## 4. Running in Kubernates (locally)
+
+### Prerequisite
+- Make Sure You have setup kubernates running on your system.
+- Your cluster have the following nodeports open:
+    - 30001 (For Acessing the frontend)
+    - 30002 (For Acessing the backend)
+- You have already created and pushed the images for frontend and backend to the Image Artifactory (In this case Docker Hub)
+- Change the image_names in the config files for frontend and backend with your images.
+
+### Running the Application
+- Change the directory to k8s inside the project directory.
+- Create the config-map by running `kubectl apply -f configs.yml`
+- Create the database deployment and service by running `kubectl apply -f db.yml`
+- Create the backend deployment and service by running `kubectl apply -f backend.yml`
+- Create the frontend deployment and service by running `kubectl apply -f frontend.yml`
+- Access your application at `http://localhost:30001`
+
+</br>
+
+---
+</br>
+
+
+## 5. Running with Portainer
+
+- Add the `portainer-compose.yml` file to your Portainer dashboard. 
+- Assuming you have load balancer, domains and ssl certificates are setup.
+- The compose uses Aure File Share for volume mounting, if you want to use another service you can change the compose and envs accordingly.
+- Add the Envs specified in `portainer-env.list` with appropriate values in your stack.
+- Deploy the app.
+- Access your application at your domain.
+</br>
+
+---
+</br>

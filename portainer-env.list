@@ -1,0 +1,13 @@
+CONNECTION_STRING=postgres://<db-name>:<db-password>@<service-name>:5432/<db-name> # Service name is db
+APP_BUILD_NUMBER=<app_image_tag>
+API_BUILD_NUMBER=<api_image_tag>
+PORT=3001
+ORIGIN=<your_application_domain>
+POSTGRES_USER=<db-user>
+POSTGRES_PASSWORD=<db-password>
+POSTGRES_DB=<db-name>
+PGDATA=/var/lib/postgresql/data
+POSTGRES_INITDB_SKIP='false' # true if it is already initialized.
+EFS_NAME=<your-azure-efs-name>
+STORAGE_ACCOUNT=<your-azure-efs-storage-account-name>
+ACCESS_KEY=<your-azure-efs-access-key>

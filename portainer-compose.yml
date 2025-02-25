@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  cnc-app:
+    image: dhawal793/3_tier_app_swarm:${APP_BUILD_NUMBER}
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    networks:
+      - network-frontend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  cnc-api:
+    image: dhawal793/3_tier_api_swarm:${API_BUILD_NUMBER}
+    environment:
+      - CONNECTION_STRING=${CONNECTION_STRING}
+      - PORT=${PORT}
+      - origin=${ORIGIN}
+    ports:
+      - "3001:3001"
+    networks:
+      - network-frontend
+      - network-backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  
+  cnc-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_SKIP: ${POSTGRES_INITDB_SKIP}
+    ports:
+      - "5432:5432"
+    volumes:
+      - cnc-db-data:/var/lib/postgresql/data  # Mount Azure File Share for PostgreSQL
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - network-backend
+
+networks:
+  network-frontend:
+    driver: overlay
+  network-backend:
+    driver: overlay
+
+volumes:
+  cnc-db-data:
+    driver: local
+    driver_opts:
+      type: cifs
+      o: "mfsymlinks,vers=3.0,username=${STORAGE_ACCOUNT},password=${ACCESS_KEY},addr=${STORAGE_ACCOUNT}.file.core.windows.net,uid=999,gid=999,file_mode=0700,dir_mode=0700"
+      device: "//${STORAGE_ACCOUNT}.file.core.windows.net/${EFS_NAME}"
+
+
+
+
+#  THESE ARE THE EXAMPLE CONFIGS ----------------------------------
+
+# CONNECTION_STRING=postgres://demo_user:demo_user@cnc-db:5432/demo_db
+# APP_BUILD_NUMBER=1
+# API_BUILD_NUMBER=1
+# PORT=3001
+# ORIGIN=https://your-frontend-domain.com OR http://your-frontend-ip:80
+# POSTGRES_USER=demo_user
+# POSTGRES_PASSWORD=demo_user
+# POSTGRES_DB=demo_db
+# POSTGRES_INITDB_SKIP='true' if the data is already present in the efs mount otherwise false
+# EFS_NAME=your-efs-name
+# STORAGE_ACCOUNT=your-storage-account-name
+# ACCESS_KEY=your-efs-access-key
