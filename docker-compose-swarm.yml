@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  api:
+    image: dhawal901/3_tier_api_swarm:2
+    environment:
+      - CONNECTION_STRING=postgres://demo_user:demo_user@db:5432/demo_db
+      - PORT=3001
+      # - ORIGIN=http://localhost   # Uncomment this and use your ip or domain instead.
+    ports:
+      - "3001:3001"
+    networks:
+      - network-frontend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
+
+  app:
+    image: dhawal901/3_tier_app_swarm:2
+    environment:
+      - VITE_HOST=http://api:3001  # Use Ip address or domain name for external access.
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    networks:
+      - network-frontend
+      - network-backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: demo_user
+      POSTGRES_PASSWORD: demo_user
+      POSTGRES_DB: demo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      # - ./init_sql_scripts/:/docker-entrypoint-initdb.d
+      - /mnt/pgdata/:/var/lib/postgresql/data  # A folder must be present on the manager node named pgdata which will be used as bind mount. (For better data retention use NFS mounting on nodes.)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo_user"]
+      interval: 10s # Check every 10 seconds
+      timeout: 5s # Timeout for the health check
+      retries: 5 # Retry 5 times before considering it unhealthy
+    networks:
+      - network-backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  network-frontend:
+    driver: overlay
+  network-backend:
+    driver: overlay
