@@ -1,0 +1,16 @@
+/* App.css */
+.scrollbar-thin {
+  scrollbar-width: thin; /* For Firefox */
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #2d2d2d; /* Background of the scrollbar track */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #4a4a4a; /* Color of the scrollbar thumb */
+  border-radius: 10px; /* Round edges of the scrollbar thumb */
+}
