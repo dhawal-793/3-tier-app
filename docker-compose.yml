@@ -1,0 +1,61 @@
+services:
+  api:
+    container_name: "3_tier_app_backend"
+    build: 
+      context: ./backend
+    image: 3_tier_app_backend
+    environment:
+      - CONNECTION_STRING=postgres://demo_user:demo_user@db:5432/demo_db
+      - PORT=3001
+      - ORIGIN=http://localhost
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    networks:
+      - network-backend
+      - network-frontend
+
+  app:
+    container_name: "3_tier_app_frontend"
+    build:
+      context:  ./frontend
+      args:
+        - VITE_HOST=http://localhost:3001
+    # environment:
+    #   - VITE_HOST=http://localhost:3001
+    image: 3_tier_app_frontend
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    networks:
+      - network-frontend
+
+  db:
+    image: postgres:latest
+    container_name: "3_tier_app_db"
+    environment:
+      POSTGRES_USER: demo_user
+      POSTGRES_PASSWORD: demo_user
+      POSTGRES_DB: demo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      # - ./init_sql_scripts/:/docker-entrypoint-initdb.d  # If commented the dummy data will be spawned in the databse every time it is initialized.
+      - pgdata:/var/lib/postgresql/data  # Creates a Volume named pgdata in docker standalone, can also be used with other volume mountings such as Bind-mount, and EFS and Azure mountings as well.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo_user"]
+      interval: 10s # Check every 10 seconds
+      timeout: 5s # Timeout for the health check
+      retries: 5 # Retry 5 times before considering it unhealthy
+    networks:
+      - network-backend
+
+networks:
+  network-backend:
+  network-frontend:
+
+volumes:
+  pgdata:
